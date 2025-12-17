@@ -1,4 +1,4 @@
-# MC-Kit 🎮
+# Minecraft Docker Kit
 
 A production-ready Docker Compose setup for running a Minecraft server with Cloudflare Tunnel support. This project provides a secure, scalable, and easy-to-deploy Minecraft server environment with automated CurseForge modpack support.
 
