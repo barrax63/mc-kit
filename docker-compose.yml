@@ -28,7 +28,6 @@ services:
     networks: ['main']
     restart: unless-stopped
     hostname: minecraft
-    pull_policy: daily
     tty: true
     stdin_open: true
     volumes:
@@ -85,4 +84,5 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
+
     logging: *default-logging
