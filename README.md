@@ -24,11 +24,14 @@ Before you begin, ensure you have the following installed:
 
 ## Quick Start
 
-### 1. Clone the Repository
+### 1. Clone or Download the Repository
 
 ```bash
-git clone https://github.com/barrax63/mc-kit.git
+# Clone the repository
+git clone <repository-url>
 cd mc-kit
+
+# Or download and extract the ZIP if you don't have git
 ```
 
 ### 2. Configure Environment Variables
@@ -235,12 +238,20 @@ cp -r ./data backups/backup-$(date +%Y%m%d-%H%M%S)
 # Stop the server
 docker compose down
 
-# Restore data
-rm -rf ./data
+# ⚠️ CAUTION: Verify you're in the correct directory before proceeding
+pwd  # Should show /path/to/mc-kit
+
+# Backup current data before overwriting (safety measure)
+mv ./data ./data.old 2>/dev/null || true
+
+# Restore data from backup
 cp -r backups/backup-YYYYMMDD-HHMMSS ./data
 
 # Start the server
 docker compose up -d
+
+# After verifying the restore worked, you can remove the old backup
+# rm -rf ./data.old
 ```
 
 ## Resource Management
@@ -447,15 +458,36 @@ Create a backup script and use cron:
 ```bash
 #!/bin/bash
 # backup.sh
+set -e  # Exit on error
+
+# Configuration
+PROJECT_DIR="/path/to/mc-kit"
 BACKUP_DIR="/path/to/backups"
+RETENTION_DAYS=7
+
+# Validate directories exist
+if [ ! -d "$PROJECT_DIR/data" ]; then
+  echo "Error: Source directory $PROJECT_DIR/data not found"
+  exit 1
+fi
+
+mkdir -p "$BACKUP_DIR"
+
+# Create backup
 DATE=$(date +%Y%m%d-%H%M%S)
-cp -r /path/to/mc-kit/data "$BACKUP_DIR/backup-$DATE"
-find "$BACKUP_DIR" -mtime +7 -delete  # Keep only 7 days
+echo "Creating backup: $BACKUP_DIR/backup-$DATE"
+cp -r "$PROJECT_DIR/data" "$BACKUP_DIR/backup-$DATE"
+
+# Clean old backups (only delete backups matching our naming pattern)
+echo "Cleaning backups older than $RETENTION_DAYS days"
+find "$BACKUP_DIR" -name "backup-*" -type d -mtime +$RETENTION_DAYS -exec rm -rf {} +
+
+echo "Backup completed successfully"
 ```
 
 Add to crontab:
 ```bash
-0 2 * * * /path/to/backup.sh
+0 2 * * * /path/to/backup.sh >> /var/log/mc-backup.log 2>&1
 ```
 
 ### Monitoring
@@ -506,8 +538,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/barrax63/mc-kit/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/barrax63/mc-kit/discussions)
+For issues, questions, or discussions about this project, please use the GitHub repository's issue tracker and discussion forums.
+
 - **Docker Minecraft Server**: [itzg/docker-minecraft-server Docs](https://docker-minecraft-server.readthedocs.io/)
 
 ## Additional Resources
