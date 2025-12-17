@@ -28,10 +28,8 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/barrax63/mc-kit.git
 cd mc-kit
-
-# Or download and extract the ZIP if you don't have git
 ```
 
 ### 2. Configure Environment Variables
@@ -50,6 +48,9 @@ nano .env  # or use your preferred editor
 INIT_MEMORY=4G
 MAX_MEMORY=8G
 
+# RCON settings
+RCON_PASSWORD=very-secure-password
+
 # CurseForge settings
 CF_PAGE_URL=https://www.curseforge.com/minecraft/modpacks/your-modpack
 CF_API_KEY=your-curseforge-api-key
@@ -57,7 +58,7 @@ CF_API_KEY=your-curseforge-api-key
 
 See the [Configuration Guide](#configuration-guide) for detailed information on all available options.
 
-### 3. Set Up Cloudflare Tunnel (Optional but Recommended)
+### 3. Set Up Cloudflare Tunnel
 
 To expose your Minecraft server without port forwarding:
 
@@ -79,16 +80,8 @@ CLOUDFLARED_TUNNEL_TOKEN=your-tunnel-token-here
 
 ### 4. Start the Server
 
-**Without Cloudflare Tunnel:**
-
 ```bash
 docker compose up -d
-```
-
-**With Cloudflare Tunnel:**
-
-```bash
-docker compose --profile cloudflared up -d
 ```
 
 ### 5. Monitor Startup
@@ -154,20 +147,14 @@ Wait for the message: `[Server thread/INFO]: Done! For help, type "help"`
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `CLOUDFLARED_TUNNEL_TOKEN` | Yes* | Tunnel token from Cloudflare Zero Trust |
-
-*Required only if using the cloudflared profile
+| `CLOUDFLARED_TUNNEL_TOKEN` | Yes | Tunnel token from Cloudflare Zero Trust |
 
 ## Usage
 
 ### Starting the Server
 
 ```bash
-# Without Cloudflare Tunnel
 docker compose up -d
-
-# With Cloudflare Tunnel
-docker compose --profile cloudflared up -d
 ```
 
 ### Stopping the Server
@@ -220,38 +207,6 @@ docker compose pull
 
 # Restart with new images
 docker compose up -d
-```
-
-### Backup Your World
-
-```bash
-# Create a backup directory
-mkdir -p backups
-
-# Copy world data
-cp -r ./data backups/backup-$(date +%Y%m%d-%H%M%S)
-```
-
-### Restore from Backup
-
-```bash
-# Stop the server
-docker compose down
-
-# ⚠️ CAUTION: Verify you're in the correct directory before proceeding
-pwd  # Should show /path/to/mc-kit
-
-# Backup current data before overwriting (safety measure)
-mv ./data ./data.old 2>/dev/null || true
-
-# Restore data from backup
-cp -r backups/backup-YYYYMMDD-HHMMSS ./data
-
-# Start the server
-docker compose up -d
-
-# After verifying the restore worked, you can remove the old backup
-# rm -rf ./data.old
 ```
 
 ## Resource Management
@@ -336,191 +291,6 @@ This project implements several security best practices:
 1. **Never commit your `.env` file** - it contains sensitive tokens
 2. **Use strong RCON passwords** if enabling RCON
 3. **Keep images updated** - run `docker compose pull` regularly
-4. **Limit whitelist** - consider enabling whitelist mode for private servers
-5. **Regular backups** - automate world backups before updates
-
-## Troubleshooting
-
-### Server Won't Start
-
-**Check logs:**
-```bash
-docker compose logs minecraft
-```
-
-**Common issues:**
-
-1. **Insufficient memory:**
-   - Error: `OutOfMemoryError` or `Cannot allocate memory`
-   - Solution: Increase `MAX_MEMORY` in `.env`
-
-2. **EULA not accepted:**
-   - Error: `You need to agree to the EULA`
-   - Solution: The compose file sets `EULA=TRUE`, but check if it's being overridden
-
-3. **Port already in use:**
-   - Error: `bind: address already in use`
-   - Solution: Stop other services using port 25565 or change the port
-
-### Cloudflared Won't Connect
-
-**Check logs:**
-```bash
-docker compose logs cloudflared
-```
-
-**Common issues:**
-
-1. **Invalid token:**
-   - Error: `invalid token`
-   - Solution: Verify `CLOUDFLARED_TUNNEL_TOKEN` in `.env`
-
-2. **Tunnel not configured:**
-   - Error: `Cannot reach origin server`
-   - Solution: Configure the tunnel in Cloudflare Dashboard with service pointing to `minecraft:25565`
-
-### Can't Connect to Server
-
-1. **Verify server is running:**
-   ```bash
-   docker compose ps
-   ```
-
-2. **Check health status:**
-   ```bash
-   docker compose ps minecraft
-   ```
-   Status should be `healthy`
-
-3. **Verify Cloudflare Tunnel:**
-   - Check tunnel status in Cloudflare Dashboard
-   - Ensure tunnel is pointing to correct hostname
-
-4. **Check Minecraft version:**
-   - Ensure your client version matches server version
-   - Check logs for the server version: `docker compose logs minecraft | grep "Starting minecraft server version"`
-
-### Performance Issues
-
-1. **Increase allocated memory**
-2. **Increase CPU limits**
-3. **Check disk I/O** - use SSD if possible
-4. **Optimize JVM flags** - the itzg/minecraft-server image includes Aikar's optimized flags
-
-### Modpack Not Loading
-
-1. **Verify CurseForge URL:**
-   ```bash
-   grep CF_PAGE_URL .env
-   ```
-
-2. **Check API key validity:**
-   - Regenerate key in [CurseForge Console](https://console.curseforge.com/)
-
-3. **Check logs for download errors:**
-   ```bash
-   docker compose logs minecraft | grep -i curseforge
-   ```
-
-## Advanced Configuration
-
-### Using a Different Modpack Type
-
-The default configuration uses CurseForge (`TYPE=AUTO_CURSEFORGE`). To use other sources:
-
-**FTB Modpacks:**
-```yaml
-environment:
-  - TYPE=FTBA
-  - FTB_MODPACK_ID=12345
-```
-
-**Modrinth:**
-```yaml
-environment:
-  - TYPE=MODRINTH
-  - MODRINTH_SLUG=modpack-slug
-```
-
-**Custom Modpack:**
-```yaml
-environment:
-  - TYPE=CUSTOM
-  - CUSTOM_SERVER=https://example.com/server.zip
-```
-
-See [itzg/docker-minecraft-server documentation](https://github.com/itzg/docker-minecraft-server) for all options.
-
-### Scheduling Automatic Backups
-
-Create a backup script and use cron:
-
-```bash
-#!/bin/bash
-# backup.sh
-set -e  # Exit on error
-
-# Configuration
-PROJECT_DIR="/path/to/mc-kit"
-BACKUP_DIR="/path/to/backups"
-RETENTION_DAYS=7
-
-# Validate directories exist
-if [ ! -d "$PROJECT_DIR/data" ]; then
-  echo "Error: Source directory $PROJECT_DIR/data not found"
-  exit 1
-fi
-
-mkdir -p "$BACKUP_DIR"
-
-# Create backup
-DATE=$(date +%Y%m%d-%H%M%S)
-echo "Creating backup: $BACKUP_DIR/backup-$DATE"
-cp -r "$PROJECT_DIR/data" "$BACKUP_DIR/backup-$DATE"
-
-# Clean old backups (only delete backups matching our naming pattern)
-echo "Cleaning backups older than $RETENTION_DAYS days"
-find "$BACKUP_DIR" -name "backup-*" -type d -mtime +$RETENTION_DAYS -exec rm -rf {} +
-
-echo "Backup completed successfully"
-```
-
-Add to crontab:
-```bash
-0 2 * * * /path/to/backup.sh >> /var/log/mc-backup.log 2>&1
-```
-
-### Monitoring
-
-Add a monitoring stack (Prometheus + Grafana):
-
-```yaml
-# Add to docker-compose.yml
-  prometheus:
-    image: prom/prometheus
-    # ... configuration
-
-  grafana:
-    image: grafana/grafana
-    # ... configuration
-```
-
-Monitor container metrics and Minecraft-specific metrics using exporters.
-
-## Project Structure
-
-```
-mc-kit/
-├── docker-compose.yml    # Main Docker Compose configuration
-├── .env.example          # Example environment variables
-├── .env                  # Your environment variables (not in git)
-├── data/                 # Minecraft server data (created on first run)
-│   ├── world/           # Main world data
-│   ├── mods/            # Installed mods
-│   ├── config/          # Mod configurations
-│   └── logs/            # Server logs
-└── README.md            # This file
-```
 
 ## Contributing
 
@@ -536,19 +306,3 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - [Cloudflare Tunnel](https://www.cloudflare.com/products/tunnel/) - Secure server exposure
 - [CurseForge](https://www.curseforge.com/) - Minecraft modpack hosting
 
-## Support
-
-For issues, questions, or discussions about this project, please use the GitHub repository's issue tracker and discussion forums.
-
-- **Docker Minecraft Server**: [itzg/docker-minecraft-server Docs](https://docker-minecraft-server.readthedocs.io/)
-
-## Additional Resources
-
-- [Minecraft Server Properties](https://minecraft.fandom.com/wiki/Server.properties)
-- [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
-- [CurseForge API Documentation](https://docs.curseforge.com/)
-
----
-
-**Happy Gaming! 🎮**
