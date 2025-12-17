@@ -61,7 +61,6 @@ services:
   cloudflared:
     <<: *security-baseline
     image: cloudflare/cloudflared:latest
-    profiles: ["cloudflared"]
     networks: ['main']
     restart: unless-stopped
     environment:
@@ -86,3 +85,4 @@ services:
           memory: 256M
 
     logging: *default-logging
+
