@@ -50,7 +50,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '8.0'
+          cpus: '6.0'
           memory: ${MAX_MEMORY}
         reservations:
           cpus: '4.0'
@@ -85,4 +85,5 @@ services:
           memory: 256M
 
     logging: *default-logging
+
 
