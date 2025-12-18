@@ -51,10 +51,10 @@ services:
       resources:
         limits:
           cpus: '6.0'
-          memory: ${MAX_MEMORY}
+          memory: 14G
         reservations:
           cpus: '4.0'
-          memory: ${INIT_MEMORY}
+          memory: 12G
     logging: *default-logging
 
   # ---- Cloudflare reverse proxy ----
@@ -85,5 +85,6 @@ services:
           memory: 256M
 
     logging: *default-logging
+
 
 
