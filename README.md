@@ -47,6 +47,9 @@ nano .env  # or use your preferred editor
 # Memory settings (adjust based on your server resources)
 MEMORY=12G
 
+# Server name
+SERVER_NAME=My Server
+
 # RCON settings
 RCON_PASSWORD=very-secure-password
 
