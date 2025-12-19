@@ -220,6 +220,12 @@ deploy:
 
 The project uses the host network of the client. Don't forget to forward the port!
 
+Example for ufw:
+```bash
+sudo ufw allow 25565/tcp
+sudo ufw reload
+```
+
 ## Security Considerations
 
 This project implements several security best practices:
