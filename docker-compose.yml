@@ -19,8 +19,6 @@ services:
     <<: *security-baseline
     image: itzg/minecraft-server:stable
     network_mode: host
-    ports:
-      - "25565:25565/tcp"
     restart: on-failure
     hostname: minecraft
     tty: true
@@ -51,4 +49,5 @@ services:
           cpus: '4.0'
           memory: 12G
     logging: *default-logging
+
 
