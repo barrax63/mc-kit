@@ -51,3 +51,4 @@ services:
           cpus: '4.0'
           memory: 12G
     logging: *default-logging
+
