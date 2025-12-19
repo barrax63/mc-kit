@@ -1,12 +1,5 @@
 name: mc-kit
 
-networks:
-  main:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.254.11.0/24
-
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -25,7 +18,9 @@ services:
   minecraft:
     <<: *security-baseline
     image: itzg/minecraft-server:stable
-    networks: ['main']
+    network_mode: host
+    ports:
+      - "25565:25565/tcp"
     restart: on-failure
     hostname: minecraft
     tty: true
@@ -56,37 +51,3 @@ services:
           cpus: '4.0'
           memory: 12G
     logging: *default-logging
-
-  # ---- Cloudflare reverse proxy ----
-  cloudflared:
-    <<: *security-baseline
-    image: cloudflare/cloudflared:latest
-    networks: ['main']
-    restart: unless-stopped
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARED_TUNNEL_TOKEN}
-    read_only: true
-    tmpfs:
-      - /tmp
-    command: tunnel --metrics 127.0.0.1:60123 --no-autoupdate run
-    healthcheck:
-      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:60123", "ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-    logging: *default-logging
-
-
-
-
-
