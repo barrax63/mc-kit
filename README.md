@@ -1,12 +1,11 @@
 # Minecraft Docker Kit
 
-A production-ready Docker Compose setup for running a Minecraft server with Cloudflare Tunnel support. This project provides a secure, scalable, and easy-to-deploy Minecraft server environment with automated CurseForge modpack support.
+A production-ready Docker Compose setup for running a Minecraft server. This project provides a secure, scalable, and easy-to-deploy Minecraft server environment with automated CurseForge modpack support.
 
 ## Features
 
 - 🚀 **Easy Deployment**: One-command setup with Docker Compose
 - 🔒 **Secure by Default**: Built with security best practices (no-new-privileges, capability dropping, AppArmor)
-- 🌐 **Cloudflare Tunnel Integration**: Expose your server securely without port forwarding
 - 📦 **CurseForge Support**: Automatic modpack installation and updates
 - 🔄 **Auto-healing**: Health checks and automatic restart policies
 - 📊 **Resource Management**: Configurable CPU and memory limits
@@ -19,7 +18,6 @@ Before you begin, ensure you have the following installed:
 
 - [Docker](https://docs.docker.com/get-docker/) (version 20.10 or later)
 - [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0 or later)
-- A [Cloudflare account](https://www.cloudflare.com/) (for tunnel setup)
 - At least 4GB of available RAM (8GB+ recommended for modpacks)
 
 ## Quick Start
@@ -58,35 +56,13 @@ CF_PAGE_URL=https://www.curseforge.com/minecraft/modpacks/your-modpack
 CF_API_KEY=your-curseforge-api-key
 ```
 
-See the [Configuration Guide](#configuration-guide) for detailed information on all available options.
-
-### 3. Set Up Cloudflare Tunnel
-
-To expose your Minecraft server without port forwarding:
-
-1. Create a Cloudflare Tunnel:
-   - Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)
-   - Navigate to **Access** → **Tunnels**
-   - Click **Create a tunnel**
-   - Follow the wizard to create your tunnel
-
-2. Configure the tunnel for Minecraft:
-   - **Service Type**: TCP
-   - **URL**: `minecraft:25565`
-   
-3. Copy your tunnel token and add it to `.env`:
-
-```env
-CLOUDFLARED_TUNNEL_TOKEN=your-tunnel-token-here
-```
-
-### 4. Start the Server
+### 3. Start the Server
 
 ```bash
 docker compose up -d
 ```
 
-### 5. Monitor Startup
+### 4. Monitor Startup
 
 Watch the logs to ensure the server starts correctly:
 
@@ -145,12 +121,6 @@ Wait for the message: `[Server thread/INFO]: Done! For help, type "help"`
 4. Generate a new API key
 5. Copy the key to your `.env` file
 
-### Cloudflare Tunnel
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `CLOUDFLARED_TUNNEL_TOKEN` | Yes | Tunnel token from Cloudflare Zero Trust |
-
 ## Usage
 
 ### Starting the Server
@@ -176,12 +146,6 @@ docker compose down -v
 ```bash
 # All services
 docker compose logs -f
-
-# Minecraft server only
-docker compose logs -f minecraft
-
-# Cloudflared only
-docker compose logs -f cloudflared
 
 # Last 100 lines
 docker compose logs --tail=100 minecraft
@@ -234,7 +198,7 @@ The server uses two memory settings:
 
 Current settings in `docker-compose.yml`:
 
-- **Limits**: Up to 8 CPU cores
+- **Limits**: Up to 6 CPU cores
 - **Reservations**: Guaranteed 4 CPU cores
 
 Adjust these in `docker-compose.yml` based on your host system:
@@ -243,32 +207,18 @@ Adjust these in `docker-compose.yml` based on your host system:
 deploy:
   resources:
     limits:
-      cpus: '4.0'  # Adjust this
-      memory: ${MAX_MEMORY}
+      cpus: '6.0'
+      memory: 14G
     reservations:
-      cpus: '2.0'  # Adjust this
-      memory: ${INIT_MEMORY}
+      cpus: '4.0'
+      memory: 12G
 ```
 
 ## Network Configuration
 
-### Default Network
+### Host Network
 
-The project uses a custom bridge network with subnet `10.254.11.0/24`.
-
-### Port Mapping
-
-By default, no ports are exposed to the host. This is by design for security when using Cloudflare Tunnel.
-
-**To expose ports directly** (not recommended if using Cloudflare Tunnel):
-
-Add to the `minecraft` service in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "25565:25565"  # Minecraft
-  - "25575:25575"  # RCON (if enabled)
-```
+The project uses the host network of the client. Don't forget to forward the port!
 
 ## Security Considerations
 
@@ -279,14 +229,7 @@ This project implements several security best practices:
 - ✅ **no-new-privileges**: Prevents privilege escalation
 - ✅ **AppArmor**: Mandatory Access Control
 - ✅ **Capability dropping**: All capabilities dropped by default
-- ✅ **Read-only filesystem**: Cloudflared runs with read-only root
 - ✅ **Minimal capabilities**: Only required capabilities added back (CHOWN, SETGID, SETUID)
-
-### Network Security
-
-- ✅ **No exposed ports**: Use Cloudflare Tunnel instead of port forwarding
-- ✅ **Isolated network**: Services run in a dedicated bridge network
-- ✅ **DDoS protection**: Cloudflare provides built-in DDoS mitigation
 
 ### Best Practices
 
@@ -305,6 +248,5 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ## Acknowledgments
 
 - [itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server) - Excellent Minecraft server Docker image
-- [Cloudflare Tunnel](https://www.cloudflare.com/products/tunnel/) - Secure server exposure
 - [CurseForge](https://www.curseforge.com/) - Minecraft modpack hosting
 
