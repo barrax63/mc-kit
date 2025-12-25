@@ -43,12 +43,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '5.0'
+          cpus: '4.0'
           memory: 14G
         reservations:
-          cpus: '4.0'
+          cpus: '2.0'
           memory: 12G
     logging: *default-logging
+
 
 
 
