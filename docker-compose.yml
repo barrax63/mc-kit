@@ -1,5 +1,12 @@
 name: mc-kit
 
+networks:
+  main:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.254.11.0/24
+
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -18,7 +25,8 @@ services:
   minecraft:
     <<: *security-baseline
     image: itzg/minecraft-server:stable
-    network_mode: host
+    ports:
+      - "25565:25565/tcp"
     restart: on-failure
     hostname: minecraft
     tty: true
@@ -49,6 +57,7 @@ services:
           cpus: '2.0'
           memory: 12G
     logging: *default-logging
+
 
 
 
