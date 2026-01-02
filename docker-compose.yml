@@ -1,9 +1,5 @@
 name: mc-kit
 
-networks:
-  main:
-    driver: bridge
-
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -22,8 +18,7 @@ services:
   minecraft:
     <<: *security-baseline
     image: itzg/minecraft-server:stable
-    ports:
-      - "25565:25565/tcp"
+    network_mode: host
     restart: on-failure
     hostname: minecraft
     tty: true
