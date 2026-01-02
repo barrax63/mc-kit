@@ -45,12 +45,6 @@ nano .env  # or use your preferred editor
 # Memory settings (adjust based on your server resources)
 MEMORY=12G
 
-# Server name
-SERVER_NAME=My Server
-
-# RCON settings
-RCON_PASSWORD=very-secure-password
-
 # CurseForge settings
 CF_PAGE_URL=https://www.curseforge.com/minecraft/modpacks/your-modpack
 CF_API_KEY=your-curseforge-api-key
@@ -61,6 +55,8 @@ CF_API_KEY=your-curseforge-api-key
 ```bash
 docker compose up -d
 ```
+
+After the first start, you NEED to update `server.properties` and then set `SETUP_ONLY=false`. 
 
 ### 4. Monitor Startup
 
@@ -79,32 +75,14 @@ Wait for the message: `[Server thread/INFO]: Done! For help, type "help"`
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `TZ` | Server timezone | `Europe/Berlin`, `America/New_York` |
-| `INIT_MEMORY` | Initial heap size for Java | `4G` |
-| `MAX_MEMORY` | Maximum heap size for Java | `8G` |
+| `MEMORY` | Heap size for Java | `4G` |
 
 ### Server Settings
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `MOTD` | Message of the day shown in server list | `Welcome to My Server!` |
-| `MAX_PLAYERS` | Maximum concurrent players | `20` |
-| `SEED` | World generator seed (leave empty for random) | `12345678` |
-| `LEVEL` | World/level name | `world` |
-| `SERVER_NAME` | Server identifier | `my-minecraft-server` |
-
-### Resource Pack
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `RESOURCE_PACK` | URL to resource pack ZIP | `https://example.com/pack.zip` |
-| `RESOURCE_PACK_SHA1` | SHA1 hash of the resource pack | `abc123...` |
-
-### RCON (Remote Console)
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `ENABLE_RCON` | Enable RCON support | `true` |
-| `RCON_PASSWORD` | RCON password | `strong-password-here` |
+| `OVERRIDE_SERVER_PROPERTIES` | Manually manage the server.properties file | `false` |
+| `SETUP_ONLY` | Setup only without generating world | `true` |
 
 ### CurseForge
 
@@ -218,7 +196,7 @@ deploy:
 
 ### Host Network
 
-The project uses the host network of the client. Don't forget to forward the port!
+The project uses the host network of the client. Don't forget to forward the port from `server.properties`!
 
 Example for ufw:
 ```bash
